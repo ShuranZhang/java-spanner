@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.64.1](https://github.com/googleapis/java-spanner/compare/v6.64.0...v6.64.1) (2024-04-16)
+
+
+### Bug Fixes
+
+* NullPointerException on AbstractReadContext.span ([#3036](https://github.com/googleapis/java-spanner/issues/3036)) ([55732fd](https://github.com/googleapis/java-spanner/commit/55732fd107ac1d3b8c16eee198c904d54d98b2b4))
+
 ## [6.64.0](https://github.com/googleapis/java-spanner/compare/v6.63.0...v6.64.0) (2024-04-12)
 
 
