@@ -16,22 +16,12 @@
 
 package com.example.spanner;
 
-import com.google.api.gax.rpc.ServerStream;
-import com.google.cloud.spanner.CommitResponse;
 import com.google.cloud.spanner.DatabaseClient;
 import com.google.cloud.spanner.DatabaseId;
-import com.google.cloud.spanner.Mutation;
-import com.google.cloud.spanner.MutationGroup;
 import com.google.cloud.spanner.Options;
 import com.google.cloud.spanner.Spanner;
 import com.google.cloud.spanner.SpannerOptions;
 import com.google.cloud.spanner.Statement;
-import com.google.cloud.spanner.TransactionContext;
-import com.google.cloud.spanner.TransactionManager;
-import com.google.common.collect.ImmutableList;
-import com.google.rpc.Code;
-import com.google.spanner.v1.BatchWriteResponse;
-import java.util.Collections;
 
 /**
  * Sample showing how to set exclude transaction from change streams in different write requests.
@@ -73,92 +63,6 @@ public class ChangeStreamsTxnExclusionSample {
               return null;
             });
   }
-
-  static void writeExcludedFromChangeStreams(DatabaseClient client) {
-    CommitResponse response =
-        client.writeWithOptions(
-            Collections.singletonList(
-                Mutation.newInsertOrUpdateBuilder("Singers")
-                    .set("SingerId")
-                    .to(4520)
-                    .set("FirstName")
-                    .to("Lauren")
-                    .set("LastName")
-                    .to("Lee")
-                    .build()),
-            Options.excludeTxnFromChangeStreams());
-    System.out.println("New singer inserted.");
-  }
-
-  static void writeAtLeastOnceExcludedFromChangeStreams(DatabaseClient client) {
-    CommitResponse response =
-        client.writeAtLeastOnceWithOptions(
-            Collections.singletonList(
-                Mutation.newInsertOrUpdateBuilder("Singers")
-                    .set("SingerId")
-                    .to(45201)
-                    .set("FirstName")
-                    .to("Laura")
-                    .set("LastName")
-                    .to("Johnson")
-                    .build()),
-            Options.excludeTxnFromChangeStreams());
-    System.out.println("New singer inserted.");
-  }
-
-  static void batchWriteAtLeastOnceExcludedFromChangeStreams(DatabaseClient client) {
-    ServerStream<BatchWriteResponse> responses =
-        client.batchWriteAtLeastOnce(
-            ImmutableList.of(
-                MutationGroup.of(
-                    Mutation.newInsertOrUpdateBuilder("Singers")
-                        .set("SingerId")
-                        .to(116)
-                        .set("FirstName")
-                        .to("Scarlet")
-                        .set("LastName")
-                        .to("Terry")
-                        .build())),
-            Options.excludeTxnFromChangeStreams());
-    for (BatchWriteResponse response : responses) {
-      if (response.getStatus().getCode() == Code.OK_VALUE) {
-        System.out.printf(
-            "Mutation group have been applied with commit timestamp %s",
-            response.getIndexesList(), response.getCommitTimestamp());
-      } else {
-        System.out.printf(
-            "Mutation group could not be applied with error code %s and " + "error message %s",
-            response.getIndexesList(),
-            Code.forNumber(response.getStatus().getCode()),
-            response.getStatus().getMessage());
-      }
-    }
-  }
-
-  static void pdmlExcludedFromChangeStreams(DatabaseClient client) {
-    client.executePartitionedUpdate(
-        Statement.of("DELETE FROM Singers WHERE TRUE"), Options.excludeTxnFromChangeStreams());
-    System.out.println("Singers deleted.");
-  }
-
-  static void txnManagerExcludedFromChangeStreams(DatabaseClient client) {
-    try (TransactionManager manager =
-        client.transactionManager(Options.excludeTxnFromChangeStreams())) {
-      TransactionContext transaction = manager.begin();
-      transaction.buffer(
-          Mutation.newInsertOrUpdateBuilder("Singers")
-              .set("SingerId")
-              .to(888)
-              .set("FirstName")
-              .to("Johnson")
-              .set("LastName")
-              .to("Doug")
-              .build());
-      manager.commit();
-      System.out.println("New singer inserted.");
-    }
-  }
-
   // [END spanner_set_exclude_txn_from_change_streams]
 
 }
